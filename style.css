@@ -1,7 +1,146 @@
-html, body {
-  margin: 0;
-  padding: 0;
+
+* {
+  box-sizing: border-box;
 }
-canvas {
+
+body {
+  margin: 0;
+  padding: 24px;
+  background: #dedede;
+  color: #111;
+  font-family: "Courier New", monospace;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px;
+  border: 2px solid black;
+  background: white;
+}
+
+.location-panel {
+  margin-top: 18px;
+  width: calc(100% - 120px);
+  min-height: 55px;
+  padding: 16px;
+  border: 2px solid black;
+  background: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+main {
+  margin: 28px 120px 28px 0;
+}
+
+.art-panel {
+  width: 100%;
+  min-width: 0;
+  padding: 12px;
+  border: 2px solid black;
+  background: white;
+}
+
+#sketch-holder {
+  width: 100%;
+}
+
+#sketch-holder canvas {
   display: block;
+  width: 100% !important;
+  height: auto !important;
+  cursor: crosshair;
+}
+
+.panel-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 5px 3px;
+  border-top: 1px solid black;
+}
+
+.bottom-panel {
+  width: calc(100% - 120px);
+  min-height: 52px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  border: 2px solid black;
+  background: white;
+}
+
+#date-list {
+  position: fixed;
+  top: 24px;
+  right: 12px;
+  bottom: 24px;
+  width: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow-y: auto;
+}
+
+.date-button {
+  padding: 7px 3px;
+  border: 1px solid black;
+  background: black;
+  color: white;
+  font-family: "Courier New", monospace;
+  font-size: 9px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.date-button:hover,
+.date-button.selected {
+  background: white;
+  color: black;
+}
+
+footer {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 25px;
+  padding-top: 14px;
+  border-top: 1px solid black;
+}
+
+@media (max-width: 700px) {
+  body {
+    padding: 12px;
+  }
+
+  main {
+    margin-right: 92px;
+  }
+
+  .location-panel,
+  .bottom-panel {
+    width: calc(100% - 92px);
+    flex-wrap: wrap;
+  }
+
+  #date-list {
+    right: 5px;
+    width: 78px;
+  }
+
+  .date-button {
+    font-size: 8px;
+  }
+}
+
 }

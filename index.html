@@ -1,14 +1,52 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Final Project</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TRACE_001</title>
 
-  <script src="p5.js"></script>
-  <script src="trackingdata.js"></script>
+  <link rel="stylesheet" href="style.css">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/p5.min.js"></script>
+  <script src="PDCwebsite.js" defer></script>
 </head>
 
 <body>
+  <header class="top">
+    <span>TRC_001</span>
+    <span>PERSONAL RECORD / 2026</span>
+    <span id="record-count">RECORDS_--</span>
+  </header>
+
+  <section class="location-panel">
+    <span>LOCATION_LOG</span>
+    <span id="location">UNKNOWN</span>
+  </section>
+
+  <main>
+    <section class="art-panel">
+      <div id="sketch-holder"></div>
+
+      <div class="panel-footer">
+        <span>RECORD</span>
+        <span id="current-date">--</span>
+      </div>
+    </section>
+  </main>
+
+  <section class="bottom-panel">
+    <span>TRACE_LOG</span>
+    <span id="status">SIGNAL_ACTIVE</span>
+    <span>///</span>
+  </section>
+
+  <nav id="date-list"></nav>
+
+  <footer>
+    <span>TRACE</span>
+    <span>NOT A COMPLETE RECORD</span>
+    <span>END_001</span>
+  </footer>
 </body>
 </html>
