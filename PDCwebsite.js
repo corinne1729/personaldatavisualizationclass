@@ -1,371 +1,263 @@
 
+
 let table;
-let records = [];
 let selectedDay = 0;
+let dateMenu;
 
-let particles = [];
-let trails = [];
-let glitchAmount = 0;
+let footprints = [];
+let ads = [];
 
-function preload() {
-  table = loadTable("PDC.csv", "csv,header");
-}
+let startTime = 0;
+let animationLength = 18000;
 
-function setup() {
-  let canvas = createCanvas(850, 500);
+let progress = 0;
+
+async function setup() {
+  let canvas = createCanvas(900, 600);
   canvas.parent("sketch-holder");
+   one = await loadImage('1.png')
+   two = await loadImage('2.png')
+   three = await loadImage('3.png')
+   four = await loadImage('4.png')
+   five = await loadImage('5.png')
+   six = await loadImage('6.png')
+   seven = await loadImage('7.png')
+   eight = await loadImage('8.png')
+   nine = await loadImage('9.png')
+   ten = await loadImage('10.png')
 
-  pixelDensity(1);
-  textFont("Courier New");
+    createCanvas(100, 100);
 
-  // Read the CSV records
-  if (table && table.getRowCount() > 0) {
-    for (let i = 0; i < table.getRowCount(); i++) {
-      let date = readCell(i, "Date", 0);
-      let rawSteps = readCell(i, "Daily Steps", 1);
-      let steps = Number(rawSteps.replace(/,/g, ""));
+  
+  image(one, 0, 0);
 
-      if (!Number.isFinite(steps)) {
-        steps = 0;
-      }
+  // Resize the image.
+  one.resize(50, 100);
 
-      records.push({
-        date: date || "RECORD_" + (i + 1),
-        steps: steps,
-        activity: readCell(i, "Activity Level", -1) || "UNCLASSIFIED",
-        location: readCell(i, "Location", -1) || "UNKNOWN"
-      });
-    }
-  }
+  // Display the resized image.
+  image(one, 0, 0);
 
-  // Create moving particles
-  for (let i = 0; i < 180; i++) {
-    particles.push({
-      x: random(20, width - 20),
-      y: random(20, height - 20),
-      size: random(2, 7),
-      speed: random(0.2, 1.1),
-      seed: random(1000)
-    });
-  }
 
-  createDateButtons();
-  updateRecord();
+   for(let i = 0; i < 10; i++){
+    furbyX.push(random(30, windowWidth-30))
+    furbyY.push(random(30, windowHeight-30))
+   }
 }
 
-function readCell(row, columnName, fallbackColumn) {
-  if (!table) {
-    return "";
+
+  
+
+  table = await loadTable("PDC.csv", "csv", "header");
+
+  // Create drudown bar
+  dateMenu = createSelect();
+  dateMenu.parent("controls");
+
+  for (let i = 0; i < table.getRowCount(); i++) {
+    dateMenu.option(table.getString(i, "Date"), i);
   }
 
-  let columnIndex = table.columns.indexOf(columnName);
+  dateMenu.changed(changeDay);
 
-  if (columnIndex !== -1) {
-    return String(table.getString(row, columnIndex) || "").trim();
-  }
+  makeFootprints();
 
-  if (
-    fallbackColumn >= 0 &&
-    fallbackColumn < table.getColumnCount()
-  ) {
-    return String(table.getString(row, fallbackColumn) || "").trim();
-  }
-
-  return "";
-}
+  startTime = millis();
 
 function draw() {
-  background(255);
+  background(13, 23, 25);
 
-  drawGrid();
-  drawParticles();
-  drawCore();
-  drawInterference();
-  drawTrails();
-  drawCoordinates();
-
-  if (glitchAmount > 0) {
-    glitchAmount *= 0.92;
-  }
-
-  if (glitchAmount < 0.02) {
-    glitchAmount = 0;
-  }
-}
-
-function drawGrid() {
-  stroke(232);
-  strokeWeight(1);
-
-  for (let x = 0; x <= width; x += 25) {
-    line(x, 0, x, height);
-  }
-
-  for (let y = 0; y <= height; y += 25) {
-    line(0, y, width, y);
-  }
-
-  noFill();
-  stroke(0);
-  strokeWeight(1);
-  rect(10, 10, width - 20, height - 20);
-}
-
-function drawParticles() {
-  let record = records[selectedDay];
-
-  if (!record) {
+  if (!table) {
     return;
   }
 
-  let amount = map(record.steps, 0, 15000, 20, particles.length);
-  amount = constrain(amount, 20, particles.length);
+  
+  progress = (millis() - startTime) / animationLength;
+  progress = constrain(progress, 0, 1);
 
-  for (let i = 0; i < amount; i++) {
-    let p = particles[i];
+  let steps = Number(table.getString(selectedDay, "Daily Steps"));
 
-    p.x += sin(frameCount * 0.01 + p.seed) * p.speed * 0.2;
-    p.y += cos(frameCount * 0.012 + p.seed) * p.speed * 0.2;
+  let amount = ;
 
-    if (p.x < 15) p.x = width - 15;
-    if (p.x > width - 15) p.x = 15;
-    if (p.y < 15) p.y = height - 15;
-    if (p.y > height - 15) p.y = 15;
 
-    noFill();
-    stroke(0);
-    strokeWeight(1);
-    circle(p.x, p.y, p.size);
+  noStroke();
+
+  for (let i = 0; i < 25; i++) {
+    fill(50, 130, 110, 15);
+    ellipse(
+      (i * 137) % width,
+      (i * 83) % height,
+      100,
+      100
+    );
   }
-}
-
-function drawCore() {
-  let record = records[selectedDay];
-
-  if (!record) {
-    noStroke();
-    fill(0);
-    textSize(14);
-    textAlign(CENTER, CENTER);
-    text("NO RECORD", width / 2, height / 2);
-    return;
-  }
-
-  let size = map(record.steps, 0, 15000, 35, 125);
-  size = constrain(size, 35, 125);
-
-  push();
-  translate(width / 2, height / 2);
-  rotate(sin(frameCount * 0.012) * 0.08);
 
   noFill();
-  stroke(0);
-  strokeWeight(1);
+  stroke(70, 180, 140, 70);
+  strokeWeight(2);
 
   beginShape();
 
-  for (let i = 0; i < 100; i++) {
-    let angle = map(i, 0, 100, 0, TWO_PI);
-
-    let noiseValue = noise(
-      cos(angle) * 1.3 + selectedDay,
-      sin(angle) * 1.3,
-      frameCount * 0.004
-    );
-
-    let radius = size * (0.5 + noiseValue);
-
-    if (glitchAmount > 0.4) {
-      radius += random(-glitchAmount * 20, glitchAmount * 20);
-    }
-
-    let x = cos(angle) * radius;
-    let y = sin(angle) * radius;
-
-    curveVertex(x, y);
+  for (let i = 0; i < amount * progress; i++) {
+    curveVertex(footprints[i].x, footprints[i].y);
   }
 
-  endShape(CLOSE);
+  endShape();
 
-  // Lines radiating from the central shape
-  for (let i = 0; i < 12; i++) {
-    let angle = i * TWO_PI / 12;
-    let radius = size * 0.72;
-    let x = cos(angle) * radius;
-    let y = sin(angle) * radius;
-
-    line(0, 0, x, y);
-    circle(x, y, 4);
-  }
-
-  pop();
-}
-
-function drawInterference() {
-  let record = records[selectedDay];
-
-  if (!record) {
-    return;
-  }
-
-  let count = map(record.steps, 0, 15000, 5, 30);
-  count = constrain(count, 5, 30);
-
-  stroke(0, 35);
-  strokeWeight(1);
-
-  for (let i = 0; i < count; i++) {
-    let x = random(15, width - 15);
-    let y = random(15, height - 15);
-    let lineLength = random(5, 45);
-
-    line(x, y, min(x + lineLength, width - 15), y);
-  }
-
-  if (random(1) < glitchAmount * 0.5) {
-    stroke(0);
-    let y = random(20, height - 20);
-    line(15, y, random(30, width - 15), y);
-  }
-}
-
-function drawTrails() {
-  noFill();
-
-  for (let i = trails.length - 1; i >= 0; i--) {
-    let t = trails[i];
-
-    stroke(0, t.alpha);
-    strokeWeight(1);
-    circle(t.x, t.y, t.size);
-
-    t.alpha -= 2;
-    t.size += 0.15;
-
-    if (t.alpha <= 0) {
-      trails.splice(i, 1);
-    }
-  }
-}
-
-function drawCoordinates() {
-  let record = records[selectedDay];
-
-  if (!record) {
-    return;
-  }
-
+  
   noStroke();
-  fill(0);
-  textSize(10);
-  textAlign(LEFT, TOP);
 
-  text("SEQ_" + String(selectedDay + 1).padStart(3, "0"), 22, 22);
+  let visibleSteps = floor(amount * progress);
 
-  textAlign(LEFT, BOTTOM);
-  text("X:" + int(record.steps % 999), 22, height - 20);
+  for (let i = 0; i < visibleSteps; i++) {
 
-  push();
-  translate(width - 18, height / 2);
-  rotate(HALF_PI);
-  textAlign(CENTER, CENTER);
-  text("RECORD_" + record.steps, 0, 0);
-  pop();
-}
+    let x = footprints[i].x;
+    let y = footprints[i].y;
 
-function createDateButtons() {
-  let list = document.getElementById("date-list");
-  list.innerHTML = "";
+  
+    fill(60, 200, 150, 25);
+    ellipse(x, y, 30, 30);
 
-  for (let i = records.length - 1; i >= 0; i--) {
-    let button = document.createElement("button");
+    
+    let side = i % 2 == 0 ? -1 : 1;
 
-    button.className = "date-button";
-    button.textContent = records[i].date;
-    button.dataset.index = i;
+    push();
 
-    button.addEventListener("click", function () {
-      selectedDay = Number(this.dataset.index);
-      glitchAmount = 1;
-      updateRecord();
-    });
+    translate(x, y);
+    rotate(side * 0.3);
 
-    list.appendChild(button);
-  }
-}
+    fill(90, 210, 170, 170);
 
-function updateSelectedButton() {
-  let buttons = document.querySelectorAll(".date-button");
+    ellipse(0, 0, 8, 16);
+    ellipse(3, -9, 6, 7);
+    ellipse(-3, -10, 5, 6);
 
-  buttons.forEach(function (button) {
-    button.classList.toggle(
-      "selected",
-      Number(button.dataset.index) === selectedDay
-    );
-  });
-}
-
-function updateRecord() {
-  if (records.length === 0) {
-    document.getElementById("location").textContent = "NO RECORD";
-    document.getElementById("current-date").textContent = "--";
-    document.getElementById("record-count").textContent = "RECORDS_0";
-    document.getElementById("status").textContent = "NO_DATA";
-    return;
+    pop();
   }
 
-  let record = records[selectedDay];
+  for (let i = 0; i < ads.length; i++) {
 
-  document.getElementById("location").textContent = record.location;
-  document.getElementById("current-date").textContent = record.date;
-  document.getElementById("record-count").textContent =
-    "RECORDS_" + records.length;
-  document.getElementById("status").textContent = "SIGNAL_ACTIVE";
+    let ad = ads[i];
 
-  updateSelectedButton();
+    if (visibleSteps > ad.showAt) {
 
-  for (let p of particles) {
-    p.x = random(20, width - 20);
-    p.y = random(20, height - 20);
-  }
-}
+      let x = footprints[ad.showAt].x;
+      let y = footprints[ad.showAt].y;
 
-function mousePressed() {
-  if (
-    mouseX >= 0 &&
-    mouseX <= width &&
-    mouseY >= 0 &&
-    mouseY <= height
-  ) {
-    glitchAmount = 1;
+      fill(100, 230, 180, 35);
+      noStroke();
+      ellipse(x, y, 115, 115);
 
-    trails.push({
-      x: mouseX,
-      y: mouseY,
-      size: 5,
-      alpha: 255
-    });
-  }
-}
+    
+      fill(235, 235, 225, 240);
+      rectMode(CENTER);
+      rect(x, y, 85, 85, 8);
 
-function mouseDragged() {
-  if (
-    mouseX >= 0 &&
-    mouseX <= width &&
-    mouseY >= 0 &&
-    mouseY <= height
-  ) {
-    trails.push({
-      x: mouseX,
-      y: mouseY,
-      size: random(3, 10),
-      alpha: 180
-    });
+      imageMode(CENTER);
 
-    if (trails.length > 150) {
-      trails.shift();
+      let img = ad.image;
+
+      let scale = min(75 / img.width, 75 / img.height);
+
+      image(
+        img,
+        x,
+        y,
+        img.width * scale,
+        img.height * scale
+      );
+
+      fill(120, 240, 180);
+      ellipse(x + 38, y - 38, 10, 10);
     }
   }
 
-  return false;
+  fill(220, 240, 225);
+  noStroke();
+
+  textAlign(LEFT);
+  textSize(13);
+  text("DAILY WALKING JOURNEY", 35, 35);
+
+  textSize(26);
+  text(steps.toLocaleString() + " STEPS", 35, 75);
+
+  textSize(14);
+  fill(130, 190, 165);
+  text(table.getString(selectedDay, "Date"), 35, 100);
+
+  let adsSeen = 0;
+
+  for (let i = 0; i < ads.length; i++) {
+    if (visibleSteps > ads[i].showAt) {
+      adsSeen++;
+    }
+  }
+
+ 
+
+  
+  noStroke();
+  fill(60, 90, 80);
+  rect(35, 165, 180, 5, 5);
+
+  fill(100, 220, 165);
+  rect(35, 165, 180 * progress, 5, 5);
+
+}
+
+
+
+function makeFootprints() {
+
+  footprints = [];
+
+  let steps = Number(table.getString(selectedDay, "Daily Steps"));
+
+  let amount = floor(steps / 100);
+
+  // Start near the left side of the screen
+  let x = 100;
+  let y = 300;
+
+  for (let i = 0; i < amount; i++) {
+
+    footprints.push({
+      x: x,
+      y: y
+    });
+
+    // Move in a random direction
+    x += random(8, 15);
+    y += random(-18, 18);
+
+  
+    if (x > 850) {
+      x = 100;
+      y += 35;
+    }
+
+    if (y < 190) {
+      y = 190;
+    }
+
+    if (y > 550) {
+      y = 550;
+    }
+  }
+
+  
+  for (let i = 0; i < ads.length; i++) {
+
+    ads[i].showAt = floor(random(5, amount - 5));
+  }
+}
+
+
+function changeDay() {
+
+  selectedDay = Number(dateMenu.value());
+
+  makeFootprints();
+
+  startTime = millis();
 }
