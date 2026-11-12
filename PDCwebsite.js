@@ -1,263 +1,179 @@
 
 
 let table;
-let selectedDay = 0;
 let dateMenu;
+let selectedDay = 0;
 
-let footprints = [];
+let images = [];
+let circles = [];
 let ads = [];
+let popups = [];
 
 let startTime = 0;
-let animationLength = 18000;
-
-let progress = 0;
+let animationLength = 18000; 
+let stepsPerCircle = 100; // 1 circle = 100 steps
+let stepsPerAd = 1000;    // 1 ad = 1000 steps
+let stepsPerPopup = 500;  // 1 pop-up = 500 steps
+let popupTime = 4000;     // a pop-up stays for 4 seconds
 
 async function setup() {
   let canvas = createCanvas(900, 600);
   canvas.parent("sketch-holder");
-   one = await loadImage('1.png')
-   two = await loadImage('2.png')
-   three = await loadImage('3.png')
-   four = await loadImage('4.png')
-   five = await loadImage('5.png')
-   six = await loadImage('6.png')
-   seven = await loadImage('7.png')
-   eight = await loadImage('8.png')
-   nine = await loadImage('9.png')
-   ten = await loadImage('10.png')
+  rectMode(CENTER);
+  imageMode(CENTER);
 
-    createCanvas(100, 100);
+  // load images
+  for (let i = 1; i <= 10; i++) {
+    images.push(await loadImage(i + ".png"));
+  }
 
-  
-  image(one, 0, 0);
+  table = await loadTable("PDC.csv", ",", "header");
 
-  // Resize the image.
-  one.resize(50, 100);
-
-  // Display the resized image.
-  image(one, 0, 0);
-
-
-   for(let i = 0; i < 10; i++){
-    furbyX.push(random(30, windowWidth-30))
-    furbyY.push(random(30, windowHeight-30))
-   }
-}
-
-
-  
-
-  table = await loadTable("PDC.csv", "csv", "header");
-
-  // Create drudown bar
+  // dropdown 
   dateMenu = createSelect();
   dateMenu.parent("controls");
-
   for (let i = 0; i < table.getRowCount(); i++) {
     dateMenu.option(table.getString(i, "Date"), i);
   }
-
   dateMenu.changed(changeDay);
 
-  makeFootprints();
-
-  startTime = millis();
+  makeDay();
+}
 
 function draw() {
   background(13, 23, 25);
+  if (!table) return;
 
-  if (!table) {
-    return;
-  }
-
-  
-  progress = (millis() - startTime) / animationLength;
-  progress = constrain(progress, 0, 1);
-
-  let steps = Number(table.getString(selectedDay, "Daily Steps"));
-
-  let amount = ;
-
-
-  noStroke();
-
-  for (let i = 0; i < 25; i++) {
-    fill(50, 130, 110, 15);
-    ellipse(
-      (i * 137) % width,
-      (i * 83) % height,
-      100,
-      100
-    );
-  }
-
-  noFill();
-  stroke(70, 180, 140, 70);
-  strokeWeight(2);
-
-  beginShape();
-
-  for (let i = 0; i < amount * progress; i++) {
-    curveVertex(footprints[i].x, footprints[i].y);
-  }
-
-  endShape();
+  let elapsed = millis() - startTime;
+  let progress = constrain(elapsed / animationLength, 0, 1);
+  let visible = floor(circles.length * progress);
 
   
   noStroke();
-
-  let visibleSteps = floor(amount * progress);
-
-  for (let i = 0; i < visibleSteps; i++) {
-
-    let x = footprints[i].x;
-    let y = footprints[i].y;
-
-  
-    fill(60, 200, 150, 25);
-    ellipse(x, y, 30, 30);
-
-    
-    let side = i % 2 == 0 ? -1 : 1;
-
-    push();
-
-    translate(x, y);
-    rotate(side * 0.3);
-
-    fill(90, 210, 170, 170);
-
-    ellipse(0, 0, 8, 16);
-    ellipse(3, -9, 6, 7);
-    ellipse(-3, -10, 5, 6);
-
-    pop();
+  fill(90, 210, 170);
+  for (let i = 0; i < visible; i++) {
+    ellipse(circles[i].x, circles[i].y, 10, 10);
   }
 
-  for (let i = 0; i < ads.length; i++) {
-
-    let ad = ads[i];
-
-    if (visibleSteps > ad.showAt) {
-
-      let x = footprints[ad.showAt].x;
-      let y = footprints[ad.showAt].y;
-
-      fill(100, 230, 180, 35);
-      noStroke();
-      ellipse(x, y, 115, 115);
-
-    
-      fill(235, 235, 225, 240);
-      rectMode(CENTER);
-      rect(x, y, 85, 85, 8);
-
-      imageMode(CENTER);
-
-      let img = ad.image;
-
-      let scale = min(75 / img.width, 75 / img.height);
-
-      image(
-        img,
-        x,
-        y,
-        img.width * scale,
-        img.height * scale
-      );
-
-      fill(120, 240, 180);
-      ellipse(x + 38, y - 38, 10, 10);
+  
+  let adsSeen = 0;
+  for (let ad of ads) {
+    if (visible > ad.showAt && !ad.closed) {
+      adsSeen++;
+      fill(235, 235, 225);
+      rect(ad.x, ad.y, 85, 85);
+      drawImageFit(ad.image, ad.x, ad.y, 75);
     }
   }
 
-  fill(220, 240, 225);
-  noStroke();
-
-  textAlign(LEFT);
-  textSize(13);
-  text("DAILY WALKING JOURNEY", 35, 35);
-
-  textSize(26);
-  text(steps.toLocaleString() + " STEPS", 35, 75);
-
-  textSize(14);
-  fill(130, 190, 165);
-  text(table.getString(selectedDay, "Date"), 35, 100);
-
-  let adsSeen = 0;
-
-  for (let i = 0; i < ads.length; i++) {
-    if (visibleSteps > ads[i].showAt) {
-      adsSeen++;
+  
+  let popupsSeen = 0;
+  for (let p of popups) {
+    let age = elapsed - p.start;
+    if (age > 0 && age < popupTime && !p.closed) {
+      popupsSeen++;
+      fill(235, 235, 225);
+      rect(p.x, p.y, 130, 130);
+      fill(100, 220, 165);
+      rect(p.x, p.y - 58, 130, 14);
+      fill(13, 23, 25);
+      textSize(10);
+      text("AD", p.x - 60, p.y - 54);
+      drawImageFit(p.image, p.x, p.y + 6, 100);
     }
   }
 
  
+  fill(220, 240, 225);
+  textSize(13);
+  text("DAILY WALKING JOURNEY", 35, 35);
 
+  textSize(26);
+  text(getSteps(selectedDay).toLocaleString() + " STEPS", 35, 75);
+
+  textSize(14);
+  text(table.getString(selectedDay, "Date"), 35, 100);
   
-  noStroke();
-  fill(60, 90, 80);
-  rect(35, 165, 180, 5, 5);
-
-  fill(100, 220, 165);
-  rect(35, 165, 180 * progress, 5, 5);
-
+  textSize(11);
+  text("click an ad to close it", 35, 165);
 }
 
 
+function drawImageFit(img, x, y, size) {
+  let s = min(size / img.width, size / img.height);
+  image(img, x, y, img.width * s, img.height * s);
+}
 
-function makeFootprints() {
+function getSteps(row) {
+  return Number(table.getString(row, "Daily Steps").replace(/,/g, ""));
+}
 
-  footprints = [];
+function makeDay() {
+  circles = [];
+  ads = [];
+  popups = [];
 
-  let steps = Number(table.getString(selectedDay, "Daily Steps"));
+  let steps = getSteps(selectedDay);
 
-  let amount = floor(steps / 100);
-
-  // Start near the left side of the screen
+  // random walk 
   let x = 100;
   let y = 300;
+  for (let i = 0; i < floor(steps / stepsPerCircle); i++) {
+    circles.push({ x: x, y: y });
 
-  for (let i = 0; i < amount; i++) {
-
-    footprints.push({
-      x: x,
-      y: y
-    });
-
-    // Move in a random direction
     x += random(8, 15);
     y += random(-18, 18);
 
-  
     if (x > 850) {
       x = 100;
       y += 35;
     }
-
-    if (y < 190) {
-      y = 190;
-    }
-
-    if (y > 550) {
-      y = 550;
-    }
+    y = constrain(y, 190, 550);
   }
 
   
-  for (let i = 0; i < ads.length; i++) {
+  let adCount = floor(steps / stepsPerAd);
+  for (let i = 0; i < adCount; i++) {
+    let spot = floor((i + 1) * circles.length / (adCount + 1));
+    ads.push({
+      showAt: spot,
+      x: circles[spot].x,
+      y: circles[spot].y + random([-1, 1]) * random(40, 70),
+      image: random(images),
+      closed: false
+    });
+  }
 
-    ads[i].showAt = floor(random(5, amount - 5));
+  
+  let popupCount = floor(steps / stepsPerPopup);
+  for (let i = 0; i < popupCount; i++) {
+    popups.push({
+      start: random(0.05, 0.9) * animationLength,
+      x: random(280, 830),
+      y: random(80, 530),
+      image: random(images),
+      closed: false
+    });
+  }
+
+  startTime = millis();
+}
+
+// click an ad or pop-up to close it
+function mousePressed() {
+  for (let ad of ads) {
+    if (abs(mouseX - ad.x) < 45 && abs(mouseY - ad.y) < 45) {
+      ad.closed = true;
+    }
+  }
+  for (let p of popups) {
+    if (abs(mouseX - p.x) < 65 && abs(mouseY - p.y) < 65) {
+      p.closed = true;
+    }
   }
 }
 
-
 function changeDay() {
-
   selectedDay = Number(dateMenu.value());
-
-  makeFootprints();
-
-  startTime = millis();
+  makeDay();
 }
